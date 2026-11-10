@@ -1,4 +1,5 @@
 # GameSpace
+# I am a hardcore gamer. For this apk, i am trying to mod it and add as much use features as possible, and root-level system/vendor/kernel tunes and tweaks as well. I hope "chaldeaprjkt" the owner of this project is okay with this.
 
 chaldeaprjkt's GameSpace is an alternative to the Google's proprietary implementation of the Game Dashboard with a goals of providing basic user-interface for the [Android Game Mode API](https://developer.android.com/games/gamemode/gamemode-api).
 
