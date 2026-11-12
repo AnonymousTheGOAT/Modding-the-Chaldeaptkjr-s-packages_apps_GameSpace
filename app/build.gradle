@@ -17,22 +17,27 @@ android {
         versionCode 100
         versionName "0.2"
     }
+
     signingConfigs {
-        platform {
-            storeFile file("platform.jks")
-            storePassword 'android'
-            keyAlias 'platform'
-            keyPassword 'android'
+        debug {
+            storeFile file("$rootDir/debug-keystore.jks")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
         }
     }
+
     buildTypes {
         debug {
+            applicationIdSuffix ".debug"
             debuggable true
-            signingConfig signingConfigs.platform
+            signingConfig signingConfigs.debug
+            minifyEnabled false
         }
+
         release {
             debuggable true
-            signingConfig signingConfigs.platform
+            signingConfig signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -47,8 +52,9 @@ android {
             aidl.srcDirs = ['src/main/java']
         }
     }
+
     lint {
-        disable 'ContentDescription', 'QueryAllPackagesPermission', 'ProtectedPermissions', 'OldTargetApi', 'UseCompatLoadingForDrawables', 'UnsafeProtectedBroadcastReceiver', 'AppCompatCustomView'
+        disable 'ContentDescription', 'QueryAllPackagesPermission', 'ProtectedPermissions', 'OldTargetApi', 'UseCompatLoadingForDrawables', 'UnsafeProtectedBroadcastReceiver'
     }
 }
 
