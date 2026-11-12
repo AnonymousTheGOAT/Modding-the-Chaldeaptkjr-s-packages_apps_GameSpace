@@ -11,6 +11,10 @@ jobs:
     env:
       ANDROID_HOME: ${{ github.workspace }}/android-sdk
       ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+      RELEASE_STORE_FILE: ${{ github.workspace }}/release-keystore.jks
+      RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+      RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+      RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v4
@@ -44,12 +48,32 @@ jobs:
             "platforms;android-33" \
             "build-tools;33.0.2"
 
+      - name: Validate release signing secrets
+        run: |
+          test -n "${RELEASE_STORE_PASSWORD}" || { echo "Missing RELEASE_STORE_PASSWORD secret"; exit 1; }
+          test -n "${RELEASE_KEY_ALIAS}" || { echo "Missing RELEASE_KEY_ALIAS secret"; exit 1; }
+          test -n "${RELEASE_KEY_PASSWORD}" || { echo "Missing RELEASE_KEY_PASSWORD secret"; exit 1; }
+
+      - name: Generate release keystore
+        run: |
+          keytool -genkeypair \
+            -v \
+            -keystore "$RELEASE_STORE_FILE" \
+            -alias "$RELEASE_KEY_ALIAS" \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass "$RELEASE_STORE_PASSWORD" \
+            -keypass "$RELEASE_KEY_PASSWORD" \
+            -dname "CN=GameSpace, OU=Android, O=YourOrg, L=City, S=State, C=US"
+
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon --stacktrace
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
