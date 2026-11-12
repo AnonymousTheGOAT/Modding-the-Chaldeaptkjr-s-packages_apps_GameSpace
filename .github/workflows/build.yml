@@ -22,16 +22,32 @@ jobs:
 
       - name: Setup Android SDK
         run: |
+          set -eux
+
           mkdir -p "$ANDROID_HOME"
           curl -L https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o cmdline-tools.zip
           unzip -q cmdline-tools.zip -d "$ANDROID_HOME"
-          mkdir -p "$ANDROID_HOME/cmdline-tools"
-          mv "$ANDROID_HOME/cmdline-tools/bin" "$ANDROID_HOME/cmdline-tools/latest/bin" 2>/dev/null || true
-          if [ ! -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
-            mv "$ANDROID_HOME/cmdline-tools-linux-*" "$ANDROID_HOME/cmdline-tools/latest" 2>/dev/null || true
+
+          # Google extracts the tools under:
+          # $ANDROID_HOME/cmdline-tools/cmdline-tools
+          # but sdkmanager expects:
+          # $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
+          if [ -d "$ANDROID_HOME/cmdline-tools/cmdline-tools" ]; then
+            mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
+            cp -a "$ANDROID_HOME/cmdline-tools/cmdline-tools/." "$ANDROID_HOME/cmdline-tools/latest/"
           fi
+
+          if [ ! -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
+            echo "sdkmanager not found at expected path"
+            find "$ANDROID_HOME" -maxdepth 5 -type f -name sdkmanager || true
+            exit 1
+          fi
+
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" --licenses
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" \
+            "platform-tools" \
+            "platforms;android-33" \
+            "build-tools;33.0.2"
 
       - uses: gradle/actions/setup-gradle@v4
 
